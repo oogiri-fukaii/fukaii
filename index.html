@@ -182,7 +182,7 @@ body.display #hdr{display:none}
   <div class="startwrap" id="startWrap">
     <button class="big primary disp" id="btnStart">タップして開始</button>
     <button class="chip" id="btnTest">🔊 音のテスト</button>
-    <p class="small" id="testMsg">v4</p>
+    <p class="small" id="testMsg">v5</p>
     <p class="small">音を鳴らすために一度タップが必要です。<br>戻るときはEscキー、または左上の「第〇問」をダブルタップ。</p>
   </div>
 </section>
@@ -264,6 +264,7 @@ const ADMIN_EMAIL = "qiaobenxiangtai22@gmail.com";
   let db=null,user=null,isOwner=false,canWrite=null;
   const DEF={no:1,rid:'start',phase:'voting',thr:4,tame:true,sound:true,qr:false,auto:true};
   let game=Object.assign({},DEF);
+  let seatsLoaded=false;
   let seats={},votes={},votesUnsub=null,votesRid=null,firstGame=true;
 
   /* ---------- 音 ---------- */
@@ -517,6 +518,11 @@ const ADMIN_EMAIL = "qiaobenxiangtai22@gmail.com";
   function refresh(animate){
     if(local.mode==='screen'&&!$('vScreen').hidden)renderScreen(animate);
     if(local.mode==='admin'&&!$('vAdmin').hidden)renderAdmin();
+    if(local.mode==='vote'&&seatsLoaded&&local.seat&&seatName(local.seat)!==local.name){
+      // 主催者がリセットした、または他の人に上書きされた
+      local.seat=null;local.name='';saveLocal();pickSeat=null;$('nameIn').value='';
+      if(!$('vVote').hidden){show('vSeat');$('seatWarn').textContent='席がリセットされました。もう一度、席と名前を選んでください。';}
+    }
     if(local.mode==='vote'){if(!$('vVote').hidden)renderVote();if(!$('vSeat').hidden)renderSeatPick();}
     if(db)checkAuto();
   }
@@ -574,7 +580,7 @@ const ADMIN_EMAIL = "qiaobenxiangtai22@gmail.com";
         db.doc('game').onSnapshot(onGame,()=>{});
         db.collection('seats').onSnapshot(snap=>{
           const s={};snap.docs.forEach(d=>{const x=d.data();if(x&&typeof x.name==='string')s[d.id]={name:x.name};});
-          seats=s;refresh(false);
+          seats=s;seatsLoaded=true;refresh(false);
         },()=>{});
       }
       route();
