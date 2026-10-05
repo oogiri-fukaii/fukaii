@@ -143,6 +143,13 @@ body.display #hdr{display:none}
 .arow{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--line);font-size:14px;font-weight:700}
 .arow:last-child{border-bottom:0}
 .arow select{font:inherit;border:1px solid var(--line);border-radius:999px;padding:5px 10px;background:var(--panel);color:inherit}
+
+/* 参加者の投票画面：深イイとうーんだけ */
+body.voting #hdr{display:none}
+#vVote .me,#vVote .vstage{display:none}
+#vVote .vbtns{flex:1;grid-template-columns:1fr;grid-template-rows:1fr 1fr;gap:16px;padding:16px}
+#vVote .judge{min-height:0;font-size:clamp(44px,14vw,80px)}
+#vVote .note:empty{display:none}
 </style>
 </head>
 <body>
@@ -182,7 +189,7 @@ body.display #hdr{display:none}
   <div class="startwrap" id="startWrap">
     <button class="big primary disp" id="btnStart">タップして開始</button>
     <button class="chip" id="btnTest">🔊 音のテスト</button>
-    <p class="small" id="testMsg">v7</p>
+    <p class="small" id="testMsg">v9</p>
     <p class="small">音を鳴らすために一度タップが必要です。<br>戻るときはEscキー、または左上の「第〇問」をダブルタップ。</p>
   </div>
 </section>
@@ -222,7 +229,7 @@ body.display #hdr{display:none}
     <input class="namein" id="nameIn" maxlength="12" autocomplete="off" placeholder="名前" aria-label="名前">
     <p class="warn" id="seatWarn"></p>
     <button class="big primary disp" id="btnJoin" disabled>この席で参加</button>
-    <p class="small" style="margin:0;color:var(--muted);font-size:12px">v7</p>
+    <p class="small" style="margin:0;color:var(--muted);font-size:12px">v9</p>
   </div>
 </section>
 
@@ -312,7 +319,7 @@ const ADMIN_EMAIL = "qiaobenxiangtai22@gmail.com";
   const HOST=/host/.test(location.hash);
   function isPerm(e){return !!e&&/permission/i.test(String(e.code||'')+String(e.message||''));}
   const VIEWS=['vPick','vScreen','vAdmin','vSeat','vVote'];
-  function show(id){VIEWS.forEach(v=>$(v).hidden=v!==id);document.body.classList.toggle('display',id==='vScreen');}
+  function show(id){VIEWS.forEach(v=>$(v).hidden=v!==id);document.body.classList.toggle('display',id==='vScreen');document.body.classList.toggle('voting',id==='vVote');}
   function route(){
     if(!db){show('vPick');return;}
     if(!isOwner){if(HOST){show('vPick');$('switchMode').hidden=true;return;}local.mode='vote';}
@@ -472,7 +479,7 @@ const ADMIN_EMAIL = "qiaobenxiangtai22@gmail.com";
 
   $('thr').onchange=e=>writeGame({thr:+e.target.value});
   $('tTame').onclick=()=>writeGame({tame:!game.tame});
-  (function(){const sel=$('nextSel');[[0,'オフ'],[5,'5秒後'],[10,'10秒後'],[15,'15秒後'],[20,'20秒後'],[30,'30秒後']].forEach(([v,t])=>{const o=document.createElement('option');o.value=v;o.textContent=t;sel.appendChild(o);});
+  (function(){const sel=$('nextSel');[[0,'オフ'],[3,'3秒後'],[5,'5秒後'],[10,'10秒後'],[15,'15秒後'],[20,'20秒後'],[30,'30秒後']].forEach(([v,t])=>{const o=document.createElement('option');o.value=v;o.textContent=t;sel.appendChild(o);});
     sel.onchange=e=>{nextRid=null;writeGame({next:+e.target.value});};})();
   $('tSound').onclick=()=>writeGame({sound:!game.sound});
   $('tQR').onclick=()=>writeGame({qr:!game.qr});
