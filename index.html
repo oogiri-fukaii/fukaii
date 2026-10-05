@@ -150,6 +150,7 @@ body.voting #hdr{display:none}
 #vVote .vbtns{flex:1;grid-template-columns:1fr;grid-template-rows:1fr 1fr;gap:16px;padding:16px}
 #vVote .judge{min-height:0;font-size:clamp(44px,14vw,80px)}
 #vVote .note:empty{display:none}
+.relink{display:block;margin:0 auto;padding:6px 12px 14px;border:0;background:none;color:var(--muted);font-size:13px;text-decoration:underline}
 </style>
 </head>
 <body>
@@ -189,7 +190,7 @@ body.voting #hdr{display:none}
   <div class="startwrap" id="startWrap">
     <button class="big primary disp" id="btnStart">タップして開始</button>
     <button class="chip" id="btnTest">🔊 音のテスト</button>
-    <p class="small" id="testMsg">v9</p>
+    <p class="small" id="testMsg">v10</p>
     <p class="small">音を鳴らすために一度タップが必要です。<br>戻るときはEscキー、または左上の「第〇問」をダブルタップ。</p>
   </div>
 </section>
@@ -229,7 +230,7 @@ body.voting #hdr{display:none}
     <input class="namein" id="nameIn" maxlength="12" autocomplete="off" placeholder="名前" aria-label="名前">
     <p class="warn" id="seatWarn"></p>
     <button class="big primary disp" id="btnJoin" disabled>この席で参加</button>
-    <p class="small" style="margin:0;color:var(--muted);font-size:12px">v9</p>
+    <p class="small" style="margin:0;color:var(--muted);font-size:12px">v10</p>
   </div>
 </section>
 
@@ -245,6 +246,7 @@ body.voting #hdr{display:none}
     <button class="judge u disp" id="vU" aria-pressed="false">うーん</button>
   </div>
   <p class="note" id="vNote"></p>
+  <button class="relink" id="vRename">名前・席を変える</button>
 </section>
 
 <script>
@@ -520,6 +522,7 @@ const ADMIN_EMAIL = "qiaobenxiangtai22@gmail.com";
       $('btnJoin').disabled=false;
     }
   };
+  $('vRename').onclick=()=>$('changeSeat').onclick();
   $('changeSeat').onclick=()=>{prevSeat=local.seat;pickSeat=local.seat;$('nameIn').value=local.name||'';local.seat=null;saveLocal();show('vSeat');renderSeatPick();};
 
   /* ---------- 投票 ---------- */
