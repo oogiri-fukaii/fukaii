@@ -182,7 +182,7 @@ body.display #hdr{display:none}
   <div class="startwrap" id="startWrap">
     <button class="big primary disp" id="btnStart">タップして開始</button>
     <button class="chip" id="btnTest">🔊 音のテスト</button>
-    <p class="small" id="testMsg">v5</p>
+    <p class="small" id="testMsg">v6</p>
     <p class="small">音を鳴らすために一度タップが必要です。<br>戻るときはEscキー、または左上の「第〇問」をダブルタップ。</p>
   </div>
 </section>
@@ -218,9 +218,10 @@ body.display #hdr{display:none}
   <div class="center">
     <p class="lead">自分の席と名前を選んでください。会場の画面にこの名前で表示されます。</p>
     <div class="seatpick" id="seatPick"></div>
-    <input class="namein" id="nameIn" maxlength="12" placeholder="名前（例：橋本）" aria-label="名前">
+    <input class="namein" id="nameIn" maxlength="12" autocomplete="off" placeholder="名前（例：橋本）" aria-label="名前">
     <p class="warn" id="seatWarn"></p>
     <button class="big primary disp" id="btnJoin" disabled>この席で参加</button>
+    <p class="small" style="margin:0;color:var(--muted);font-size:12px">v6</p>
   </div>
 </section>
 
@@ -473,7 +474,6 @@ const ADMIN_EMAIL = "qiaobenxiangtai22@gmail.com";
       b.textContent='席'+n;const sm=document.createElement('small');sm.textContent=seatName(n)||'空席';b.appendChild(sm);
       b.onclick=()=>{pickSeat=n;renderSeatPick();};box.appendChild(b);
     });
-    if(!$('nameIn').value&&local.name)$('nameIn').value=local.name;
     const taken=pickSeat&&seatName(pickSeat)&&seatName(pickSeat)!==$('nameIn').value.trim();
     $('seatWarn').textContent=canWrite===false?NOPERM:taken?'この席は「'+seatName(pickSeat)+'」さんが使っています。参加すると名前が上書きされます。':'';
     $('btnJoin').disabled=!(pickSeat&&$('nameIn').value.trim())||canWrite===false;
@@ -491,7 +491,7 @@ const ADMIN_EMAIL = "qiaobenxiangtai22@gmail.com";
       $('btnJoin').disabled=false;
     }
   };
-  $('changeSeat').onclick=()=>{prevSeat=local.seat;pickSeat=local.seat;local.seat=null;saveLocal();show('vSeat');renderSeatPick();};
+  $('changeSeat').onclick=()=>{prevSeat=local.seat;pickSeat=local.seat;$('nameIn').value=local.name||'';local.seat=null;saveLocal();show('vSeat');renderSeatPick();};
 
   /* ---------- 投票 ---------- */
   function renderVote(){
