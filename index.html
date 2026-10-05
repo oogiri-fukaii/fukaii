@@ -181,6 +181,8 @@ body.display #hdr{display:none}
   </div>
   <div class="startwrap" id="startWrap">
     <button class="big primary disp" id="btnStart">タップして開始</button>
+    <button class="chip" id="btnTest">🔊 音のテスト</button>
+    <p class="small" id="testMsg">v3</p>
     <p class="small">音を鳴らすために一度タップが必要です。<br>戻るときはEscキー、または左上の「第〇問」をダブルタップ。</p>
   </div>
 </section>
@@ -323,6 +325,13 @@ const ADMIN_EMAIL = "qiaobenxiangtai22@gmail.com";
   $('toScreen').onclick=()=>setMode('screen');
   $('toAdmin').onclick=()=>setMode('admin');
   $('switchMode').onclick=()=>{if(isOwner)setMode(null);};
+  $('btnTest').onclick=()=>{
+    const c=ac();
+    if(!c){$('testMsg').textContent='このブラウザは音の再生に対応していません';return;}
+    $('testMsg').textContent='音声：'+c.state+'／深イイ音 '+(SND.fukai.buf?'読込済':'読込中')+'／うーん音 '+(SND.uun.buf?'読込済':'読込中')+'／会場の音設定 '+(game.sound?'オン':'オフ');
+    const t=c.currentTime;[523.25,659.25,783.99].forEach((f,i)=>tone(f,t+i*.1,.3,'triangle',.3));
+    setTimeout(()=>{if(SND.fukai.buf){const b=c.createBufferSource();b.buffer=SND.fukai.buf;b.connect(master);b.start();}},500);
+  };
   $('btnStart').onclick=()=>{ac();$('startWrap').hidden=true;
     try{const el=document.documentElement;(el.requestFullscreen||el.webkitRequestFullscreen||function(){}).call(el);}catch(e){}};
   function leaveScreen(){if(local.mode!=='screen')return;try{if(document.fullscreenElement)document.exitFullscreen();}catch(e){}setMode(null);}
