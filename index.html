@@ -151,6 +151,31 @@ body.voting #hdr{display:none}
 #vVote .judge{min-height:0;font-size:clamp(44px,14vw,80px)}
 #vVote .note:empty{display:none}
 .relink{display:block;margin:0 auto;padding:6px 12px 14px;border:0;background:none;color:var(--muted);font-size:13px;text-decoration:underline}
+
+/* レバー */
+#vVote .vbtns{display:none}
+.lever{flex:1;min-height:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:16px 16px 4px;user-select:none;-webkit-user-select:none}
+.lv-label{font-size:clamp(36px,11vw,64px);line-height:1.1;color:var(--muted);transition:color .2s ease,transform .2s ease,text-shadow .2s ease}
+.lever.is-f .lv-top{color:var(--gold);text-shadow:0 3px 0 var(--gold-deep);transform:scale(1.08)}
+.lever.is-u .lv-bot{color:var(--uun-deep);text-shadow:0 3px 0 rgba(0,0,0,.18);transform:scale(1.08)}
+.lever.is-f .lv-bot,.lever.is-u .lv-top{opacity:.4}
+.lv-track{position:relative;width:min(160px,40vw);flex:1;max-height:56vh;min-height:220px;touch-action:none;cursor:grab}
+.lv-slot{position:absolute;left:50%;top:0;bottom:0;width:30px;transform:translateX(-50%);border-radius:999px;background:var(--panel);border:2px solid var(--line);box-shadow:inset 0 4px 10px rgba(0,0,0,.25)}
+.lv-pivot{position:absolute;left:50%;top:50%;width:26px;height:26px;transform:translate(-50%,-50%);border-radius:50%;background:#55507f;border:3px solid #2b2760}
+.lv-stick{position:absolute;left:50%;width:12px;transform:translateX(-50%);background:linear-gradient(90deg,#9a96b8,#e7e5f5,#9a96b8);border-radius:6px;top:50%;height:0}
+.lv-knob{position:absolute;left:50%;top:50%;width:min(110px,28vw);height:min(110px,28vw);border-radius:50%;
+  transform:translate(-50%,calc(-50% + var(--y,0px)));
+  background:radial-gradient(circle at 35% 30%,#ff8fb8 0%,var(--pink) 45%,#b3215c 100%);
+  box-shadow:0 8px 18px rgba(0,0,0,.35),inset 0 -6px 0 rgba(0,0,0,.15)}
+.lever:not(.dragging) .lv-knob{transition:transform .28s cubic-bezier(.3,1.4,.5,1)}
+.lever:not(.dragging) .lv-stick{transition:top .28s cubic-bezier(.3,1.4,.5,1),height .28s cubic-bezier(.3,1.4,.5,1)}
+.lever.is-f .lv-knob{background:radial-gradient(circle at 35% 30%,#fff0a8 0%,var(--gold) 45%,var(--gold-deep) 100%)}
+.lever.is-u .lv-knob{background:radial-gradient(circle at 35% 30%,#e3e1f7 0%,var(--uun) 45%,var(--uun-deep) 100%)}
+.lever.closed .lv-track{cursor:default}
+.lever.closed .lv-knob{filter:grayscale(.7) brightness(.8)}
+.lever.closed .lv-label{opacity:.6}
+.lv-hint{margin:0;font-size:13px;font-weight:700;color:var(--muted);min-height:1.4em;text-align:center}
+@media (prefers-reduced-motion: reduce){.lever .lv-knob,.lever .lv-stick{transition:none!important}}
 </style>
 </head>
 <body>
@@ -190,7 +215,7 @@ body.voting #hdr{display:none}
   <div class="startwrap" id="startWrap">
     <button class="big primary disp" id="btnStart">タップして開始</button>
     <button class="chip" id="btnTest">🔊 音のテスト</button>
-    <p class="small" id="testMsg">v10</p>
+    <p class="small" id="testMsg">v11</p>
     <p class="small">音を鳴らすために一度タップが必要です。<br>戻るときはEscキー、または左上の「第〇問」をダブルタップ。</p>
   </div>
 </section>
@@ -230,7 +255,7 @@ body.voting #hdr{display:none}
     <input class="namein" id="nameIn" maxlength="12" autocomplete="off" placeholder="名前" aria-label="名前">
     <p class="warn" id="seatWarn"></p>
     <button class="big primary disp" id="btnJoin" disabled>この席で参加</button>
-    <p class="small" style="margin:0;color:var(--muted);font-size:12px">v10</p>
+    <p class="small" style="margin:0;color:var(--muted);font-size:12px">v11</p>
   </div>
 </section>
 
@@ -240,6 +265,17 @@ body.voting #hdr{display:none}
   <div class="vstage">
     <div class="rn disp" id="vRound"></div>
     <p id="vStatus"></p>
+  </div>
+  <div class="lever" id="lever">
+    <div class="lv-label lv-top disp" id="lvTop">深イイ</div>
+    <div class="lv-track" id="lvTrack">
+      <div class="lv-slot"></div>
+      <div class="lv-stick" id="lvStick"></div>
+      <div class="lv-pivot"></div>
+      <div class="lv-knob" id="lvKnob"></div>
+    </div>
+    <div class="lv-label lv-bot disp" id="lvBot">うーん</div>
+    <p class="lv-hint" id="lvHint"></p>
   </div>
   <div class="vbtns">
     <button class="judge f disp" id="vF" aria-pressed="false">深イイ</button>
@@ -533,6 +569,7 @@ const ADMIN_EMAIL = "qiaobenxiangtai22@gmail.com";
     document.querySelector('.vstage').classList.toggle('closed',!open);
     ['vF','vU'].forEach(id=>{const b=$(id),k=id==='vF'?'f':'u';
       b.setAttribute('aria-pressed',mine===k);b.classList.toggle('dim',!!mine&&mine!==k);b.disabled=!open;});
+    renderLever(mine,open);
     const my=mine?'（あなた：'+(mine==='f'?'深イイ':'うーん')+'）':'';
     if(open)$('vStatus').textContent=mine?'投票済み（結果発表までは変更できます）':'深イイか、うーんか。';
     else if(game.phase==='tame')$('vStatus').textContent='結果発表中…'+my;
@@ -544,6 +581,44 @@ const ADMIN_EMAIL = "qiaobenxiangtai22@gmail.com";
     try{await db.doc('rounds/'+game.rid+'/votes/s'+local.seat).set({v:k});$('vNote').textContent='';}
     catch(e){$('vNote').textContent=isPerm(e)?NOPERM:'送信できませんでした。もう一度押してください。';}
   }
+  /* レバー操作 */
+  const lever=$('lever'),track=$('lvTrack'),knob=$('lvKnob'),stick=$('lvStick');
+  let lvDrag=null,lvOpen=true;
+  function lvMax(){return Math.max(40,(track.clientHeight-knob.offsetHeight)/2);}
+  function lvSet(y){
+    knob.style.setProperty('--y',y+'px');
+    const h=Math.abs(y);stick.style.height=h+'px';stick.style.top=(y<0?'calc(50% - '+h+'px)':'50%');
+  }
+  function renderLever(mine,open){
+    lvOpen=open;
+    lever.classList.toggle('is-f',mine==='f');lever.classList.toggle('is-u',mine==='u');lever.classList.toggle('closed',!open);
+    if(!lvDrag)lvSet(mine==='f'?-lvMax():mine==='u'?lvMax():0);
+    $('lvHint').textContent=!open?(game.phase==='tame'?'結果発表中…':'結果発表中'):mine?'結果発表までは引き直せます':'上に引くと深イイ、下に引くとうーん';
+  }
+  track.addEventListener('pointerdown',e=>{
+    if(!lvOpen||game.phase!=='voting')return;
+    const r=knob.getBoundingClientRect(),cur=r.top+r.height/2-(track.getBoundingClientRect().top+track.clientHeight/2);
+    lvDrag={id:e.pointerId,startY:e.clientY,base:cur};
+    lever.classList.add('dragging');track.setPointerCapture(e.pointerId);e.preventDefault();
+  });
+  track.addEventListener('pointermove',e=>{
+    if(!lvDrag||e.pointerId!==lvDrag.id)return;
+    const m=lvMax();lvSet(Math.max(-m,Math.min(m,lvDrag.base+e.clientY-lvDrag.startY)));
+  });
+  function lvEnd(e){
+    if(!lvDrag||e.pointerId!==lvDrag.id)return;
+    const m=lvMax(),y=Math.max(-m,Math.min(m,lvDrag.base+e.clientY-lvDrag.startY));
+    lvDrag=null;lever.classList.remove('dragging');
+    const mine=votes['s'+local.seat];
+    if(y<=-m*0.45){if(mine!=='f'){try{navigator.vibrate&&navigator.vibrate(40);}catch(_){}}vote('f');}
+    else if(y>=m*0.45){if(mine!=='u'){try{navigator.vibrate&&navigator.vibrate(40);}catch(_){}}vote('u');}
+    else renderVote();
+  }
+  track.addEventListener('pointerup',lvEnd);
+  track.addEventListener('pointercancel',e=>{if(lvDrag&&e.pointerId===lvDrag.id){lvDrag=null;lever.classList.remove('dragging');renderVote();}});
+  // ラベルをタップしても選べる
+  $('lvTop').onclick=()=>vote('f');$('lvBot').onclick=()=>vote('u');
+  window.addEventListener('resize',()=>{if(!$('vVote').hidden)renderVote();});
   $('vF').onclick=()=>vote('f');$('vU').onclick=()=>vote('u');
 
   /* ---------- 購読 ---------- */
