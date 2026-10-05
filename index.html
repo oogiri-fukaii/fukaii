@@ -403,7 +403,7 @@ const ADMIN_EMAIL = "qiaobenxiangtai22@gmail.com";
   function setupThr(){const sel=$('thr');SEATS.forEach(n=>{const o=document.createElement('option');o.value=n;o.textContent=n+'人以上';sel.appendChild(o);});}
   async function writeGame(patch){
     const next=Object.assign({},game,patch);
-    game=next;refresh(false);
+    game=next;applyGame();
     try{await db.doc('game').set(next);$('aNote').textContent='操作は会場スクリーンに反映されます。';}
     catch(e){$('aNote').textContent='保存できませんでした。少し待ってからもう一度押してください。';}
   }
@@ -509,19 +509,23 @@ const ADMIN_EMAIL = "qiaobenxiangtai22@gmail.com";
       votes=v;refresh(false);
     },()=>{});
   }
-  function onGame(snap){
-    const d=snap.exists?snap.data():{};
-    const prev=game.phase+'|'+game.rid;
-    game=Object.assign({},DEF,d||{});
-    if(!['voting','tame','reveal'].includes(game.phase))game.phase='voting';
+  // 状態の切り替わりを1か所で検出（自分で書き込んだ場合も演出と音を出す）
+  let lastKey=null;
+  function applyGame(){
     subVotes();
-    const changed=!firstGame&&prev!==game.phase+'|'+game.rid;
-    firstGame=false;
+    const key=game.phase+'|'+game.rid,first=lastKey===null,changed=!first&&key!==lastKey;
+    lastKey=key;
     if(changed&&local.mode==='screen'){
       if(game.phase==='tame'){refresh(false);drumroll(1.6);}
-      else if(game.phase==='reveal'){setTimeout(()=>{renderScreen(true);play(isFukai()?'fukai':'uun');},250);}
+      else if(game.phase==='reveal'){refresh(false);setTimeout(()=>{renderScreen(true);play(isFukai()?'fukai':'uun');},250);}
       else refresh(false);
     }else refresh(false);
+  }
+  function onGame(snap){
+    const d=snap.exists?snap.data():{};
+    game=Object.assign({},DEF,d||{});
+    if(!['voting','tame','reveal'].includes(game.phase))game.phase='voting';
+    applyGame();
   }
 
   async function boot(){
